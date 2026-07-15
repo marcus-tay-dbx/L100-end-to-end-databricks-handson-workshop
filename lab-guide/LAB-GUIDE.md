@@ -77,7 +77,7 @@ ALTER TABLE `<your_catalog>`.retail_360.customers
 
 ✅ **Checkpoint:** `customers` now appears as a 5th table under `retail_360`, the query returns ~800 customers across segments, and on the **Details / Columns** tab the `region` column shows the `pii` tag.
 
-🙌 **Your Turn — govern by attribute (7 min)**
+🙌 **Your Turn — Part A: mask a column by tag (5 min)**
 You've tagged `region` as PII. Now create a **policy** that automatically masks *any* column carrying that tag — using the `mask_pii` function that setup pre-built for you. This is **ABAC**: govern by attribute (the tag), not column-by-column.
 
 1. **See the raw value first.** Note the real region values before masking:
@@ -115,8 +115,50 @@ You've tagged `region` as PII. Now create a **policy** that automatically masks 
 
 > 💡 That's the power of ABAC: you wrote **one** policy against a *tag*, and every current and future column with that tag is governed automatically.
 
+---
+
+🙌 **Your Turn — Part B: row-level security on `branches` (7 min)**
+Column masks hide *columns*. **Row filters** hide *rows*. Now make each region team see only **their own branches** — using the `filter_by_region` function setup pre-built for you and the 5 `team_*` groups.
+
+That function returns TRUE when you're an **admin**, or when you belong to the group that matches a row's `region` (`Central → team_central`, `East Coast → team_east_coast`, and so on).
+
+1. **See all rows first.** As the catalog owner you can see every region right now:
+   ```sql
+   SELECT branch_id, branch_name, state, region
+   FROM `<your_catalog>`.retail_360.branches
+   ORDER BY region;
+   ```
+2. **Tag the `region` column** on `branches` (this is the attribute the row filter matches on):
+   ```sql
+   ALTER TABLE `<your_catalog>`.retail_360.branches
+     ALTER COLUMN region SET TAGS ('region_filter' = 'true');
+   ```
+3. **Create your own row-filter policy** that passes the tagged `region` column into the pre-built function:
+   ```sql
+   CREATE OR REPLACE POLICY rls_branches_by_region
+   ON SCHEMA `<your_catalog>`.retail_360
+   COMMENT 'Row filter: each region team sees only their own branches'
+   ROW FILTER `<your_catalog>`.retail_360.filter_by_region
+   TO `account users`
+   FOR TABLES
+   MATCH COLUMNS has_tag_value('region_filter', 'true') AS region_col
+   USING COLUMNS (region_col);
+   ```
+4. **Query again.** As an **admin/owner you still see all rows** (the function lets admins through) — so this is what a *regional, non-admin* user would experience:
+   ```sql
+   SELECT branch_id, branch_name, state, region
+   FROM `<your_catalog>`.retail_360.branches
+   ORDER BY region;
+   ```
+
+> 👀 **Want to actually watch it filter?** Ask the facilitator to add you to a single region group (e.g. `team_northern`) as a **non-admin** — then re-run the query and you'll see only Northern branches. The facilitator will demo this live so everyone sees the effect.
+
+> 💡 Masks + row filters together = **column-level and row-level governance**, both driven by tags, both written as one policy on the schema.
+
 💡 **Stuck?**
 - Can't find **Create or modify table**? Use the **+** button at the very top of the left sidebar → **Add data**.
+- `filter_by_region` not found? Re-run `00-setup` — Step 9 creates it in your schema.
+- Policy error about multiple filters? You may have created it twice with different names — drop the extra: `DROP POLICY <name> ON SCHEMA \`<your_catalog>\`.retail_360;`.
 - Backtick reminder: wrap the catalog name in backticks `` ` `` if your name has anything unusual.
 
 ---
