@@ -163,9 +163,13 @@ That function returns TRUE when you're an **admin**, or when you belong to the g
 
 ---
 
-## 🤖 Module 2 — Exploring Data with Genie / Assistant Code (20 min)
+## 🤖 Module 2 — Exploring Data with the Assistant (20 min)
 
-🎯 **Goal:** Use the AI Assistant to write and understand SQL & Python — no need to remember syntax.
+🎯 **Goal:** Meet your AI pair-programmer. In this module you'll use the Databricks Assistant to **generate, explain, debug, translate, visualize and document** code — so you never have to remember syntax again. Today, *you're the analyst and the Assistant is your coder.*
+
+> 💬 **The big idea:** You bring the *questions*. The Assistant writes the *code*. If you can describe what you want in plain English, you can analyse data here — SQL background or not.
+
+### 🎛️ Setup (2 min)
 
 🛠️ **Steps**
 1. Create a new notebook: **+ → Notebook**. Rename it `my-exploration`.
@@ -180,35 +184,97 @@ spark.sql("USE SCHEMA retail_360")
 print("Working in", catalog, "retail_360")
 ```
 
-4. Open the **Assistant** panel (✨ icon on the right, or `Cmd/Ctrl + I` in a cell).
-5. Try asking it — in **plain English** — to write code for you. Type these prompts into the Assistant:
-   - *"Write SQL to show total transaction amount by category for this schema, highest first."*
-   - *"Now write PySpark to find the top 10 customers by total spend, joining customers and transactions."*
-   - *"Explain what this query does"* (highlight any query first).
-6. Run the code it generates. Tweak a prompt and re-ask.
+4. Meet the Assistant two ways:
+   - **Inline** — press `Cmd/Ctrl + I` inside any cell (best for "write/fix this cell").
+   - **Pane** — click the ✨ sparkle icon on the far-right edge (best for chatting about your data).
+5. Type **`/`** inside the Assistant to see its slash-commands: `/explain`, `/fix`, `/doc`, `/optimize`, `/findTables`, `/prettify`. You'll use several below.
 
-📋 **Copy me** — a starter query if you'd rather run something now:
+---
+
+### 💪 The 6 superpowers of the Assistant (12 min)
+
+Work through these in order — each is a new cell. This is a **guided tour**; the fun challenges come right after.
+
+**① Generate — turn a question into SQL.**
+In an empty cell, press `Cmd/Ctrl + I` and type this prompt (don't write SQL yourself):
+```
+Write SQL: total transaction amount and transaction count by category, highest spend first. Tables are in the current catalog and schema.
+```
+Accept it and run. 🎉 You just wrote SQL without writing SQL.
+
+**② Explain — understand any code.**
+Paste the query below into a new cell, highlight it, open the Assistant and type `/explain`:
 ```sql
 %sql
 SELECT c.segment,
        ROUND(SUM(t.amount_myr), 2) AS total_spend,
-       COUNT(DISTINCT c.customer_id) AS customers
+       COUNT(DISTINCT c.customer_id) AS customers,
+       ROUND(SUM(t.amount_myr) / COUNT(DISTINCT c.customer_id), 2) AS spend_per_customer
 FROM customers c
 JOIN transactions t ON c.customer_id = t.customer_id
 GROUP BY c.segment
 ORDER BY total_spend DESC;
 ```
+Read the plain-English explanation. Great for code someone *else* wrote.
 
-✅ **Checkpoint:** You've generated at least one query with the Assistant and seen a result table. You understand you can ask for SQL *or* Python and it adapts.
+**③ Debug — let the Assistant fix a broken query.**
+Paste this **intentionally broken** SQL and run it. It will fail 💥 — that's the point:
+```sql
+%sql
+SELECT segment, COUNT(*) AS cust
+FROM customers
+WHERE age > 30
+GROUP BY segmnt
+ORDER BY cust DES;
+```
+When the error appears, click **Diagnose error** (or open the Assistant and type `/fix`). Review the proposed diff, **Accept**, and re-run. It should spot the typo'd `segmnt` and the broken `DES`. *You just debugged code you didn't write.*
 
-🙌 **Your Turn — try these (5 min)**
-1. **Ask for a new angle.** Prompt the Assistant: *"Write SQL for the average transaction amount by channel, most-used channel first."* Run it.
-2. **Translate languages.** Highlight any SQL query and ask the Assistant: *"Convert this to PySpark."* Notice it keeps the logic, changes the syntax.
-3. **Make it explain itself.** Highlight a query → ask *"Add an inline comment to each line explaining what it does."*
+**④ Translate — SQL ↔ Python, same logic.**
+Highlight your working query from ① and ask the Assistant:
+```
+Convert this to PySpark DataFrame code using the spark session.
+```
+Notice the logic is preserved, only the syntax changes. Run it to confirm you get the same numbers.
+
+**⑤ Visualize — describe a chart in words.**
+Run the copy-me below, then use the result's **+ / Visualization** to make a bar chart — *or* ask the Assistant: *"suggest a visualization for this result and the columns to use."*
+```sql
+%sql
+SELECT t.channel,
+       ROUND(AVG(t.amount_myr), 2) AS avg_txn,
+       COUNT(*) AS txns
+FROM transactions t
+GROUP BY t.channel
+ORDER BY txns DESC;
+```
+
+**⑥ Document — auto-comment your work.**
+Highlight any query and type `/doc` in the Assistant. It adds clear inline comments — instant documentation for the teammate who inherits your notebook.
+
+✅ **Checkpoint:** You've used the Assistant to **generate**, **explain**, **fix a failing query**, **translate to PySpark**, **suggest a chart**, and **document** — the six things you'll do every day. If your cells ①–⑥ ran, give the room a 👍.
+
+---
+
+🙌 **Your Turn — AI Data Detective (6 min)**
+Now *you* drive. No copy-paste code below — only questions. Let the Assistant write everything. Pick the ones that sound fun; you don't need all three.
+
+**🕵️ Challenge 1 — Crack the case.** Ask the Assistant, in plain English, to write the query that answers **one** of these business mysteries about *your* data:
+- *"Which state has the highest average transaction amount, and how many customers are there?"*
+- *"What are the top 3 spending categories for customers in the 'Affluent' segment?"*
+- *"Which transaction channel is most popular with customers under 30?"*
+
+Run it, then ask the Assistant a **follow-up**: *"now show that as a percentage of the total."* Notice it remembers the context. 🧠
+
+**⚔️ Challenge 2 — Debug Duel.** Write a deliberately messy query (wrong column name, missing comma, whatever) — or reuse the broken one from ③ with a *new* mistake. Race your neighbour: **who gets the Assistant to fix theirs first** using `/fix`? First green result wins. 🏆
+
+**🎨 Challenge 3 — "Read my mind" chart.** Without touching the chart menus, describe the visual you want to the Assistant in one sentence — e.g. *"a chart of monthly total spend over time"* or *"spending share by category as a pie."* See how close it gets to what you pictured. Screenshot the best one for the wrap-up.
+
+> 🎯 **Stretch (if you're flying):** ask the Assistant *"/optimize"* on your heaviest query, or *"explain this query to me like I'm a business user, no jargon."*
 
 💡 **Stuck?**
-- Assistant not showing? Click the ✨ sparkle icon on the far right edge of the screen.
-- "Table not found"? Make sure you ran the `USE CATALOG` cell first (Step 3).
+- Assistant not showing? Click the ✨ sparkle icon on the far right edge, or press `Cmd/Ctrl + I` in a cell.
+- "Table not found"? Make sure you ran the `USE CATALOG` cell first (Setup step 3), and don't prefix tables with a catalog — you're already *in* `retail_360`.
+- Assistant's code not perfect? That's normal — **tell it what's wrong** ("that used the wrong column, use `amount_myr`") and it revises. Conversation beats perfection.
 
 ---
 
