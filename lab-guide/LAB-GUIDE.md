@@ -189,6 +189,17 @@ print("Working in", catalog, "retail_360")
    - **Pane** — click the ✨ sparkle icon on the far-right edge (best for chatting about your data).
 5. Type **`/`** inside the Assistant to see its slash-commands: `/explain`, `/fix`, `/doc`, `/optimize`, `/findTables`, `/prettify`. You'll use several below.
 
+> 📇 **Know your columns (this makes the Assistant accurate).** The more precise your table/column names, the better the code it writes. Keep this handy:
+> | Table | Key columns |
+> |-------|-------------|
+> | `customers` | `customer_id`, `age`, `state`, `region`, `segment`, `income_band` |
+> | `transactions` | `txn_id`, `customer_id`, `txn_date`, `amount_myr`, `channel`, `category`, `merchant` |
+> | `accounts` | `account_id`, `customer_id`, `product_id`, `balance_myr`, `status` |
+> | `products` | `product_id`, `product_name`, `product_type`, `profit_rate_pct` |
+> | `branches` | `branch_id`, `branch_name`, `state`, `region` |
+>
+> 💡 **Golden rule for prompts:** name the **table** and the **exact column**. Say *"sum `amount_myr` from `transactions` grouped by `category`"*, not *"total spend by type"*. The Assistant can also read your schema with `/findTables` if you're unsure.
+
 ---
 
 ### 💪 The 6 superpowers of the Assistant (12 min)
@@ -196,11 +207,12 @@ print("Working in", catalog, "retail_360")
 Work through these in order — each is a new cell. This is a **guided tour**; the fun challenges come right after.
 
 **① Generate — turn a question into SQL.**
-In an empty cell, press `Cmd/Ctrl + I` and type this prompt (don't write SQL yourself):
+In an empty cell, press `Cmd/Ctrl + I` and type this prompt (don't write SQL yourself). Notice it names the exact table and columns:
 ```
-Write SQL: total transaction amount and transaction count by category, highest spend first. Tables are in the current catalog and schema.
+Using the `transactions` table, write SQL that sums the `amount_myr` column
+and counts rows, grouped by `category`, ordered by total amount_myr descending.
 ```
-Accept it and run. 🎉 You just wrote SQL without writing SQL.
+Accept it and run. 🎉 You just wrote SQL without writing SQL. *(If it guesses a wrong column, tell it: "use the column amount_myr" — and it fixes itself.)*
 
 **② Explain — understand any code.**
 Paste the query below into a new cell, highlight it, open the Assistant and type `/explain`:
@@ -232,12 +244,13 @@ When the error appears, click **Diagnose error** (or open the Assistant and type
 **④ Translate — SQL ↔ Python, same logic.**
 Highlight your working query from ① and ask the Assistant:
 ```
-Convert this to PySpark DataFrame code using the spark session.
+Convert this SQL to PySpark DataFrame code using the existing `spark` session.
+Read the table with spark.table("transactions") and keep the same columns.
 ```
 Notice the logic is preserved, only the syntax changes. Run it to confirm you get the same numbers.
 
 **⑤ Visualize — describe a chart in words.**
-Run the copy-me below, then use the result's **+ / Visualization** to make a bar chart — *or* ask the Assistant: *"suggest a visualization for this result and the columns to use."*
+Run the copy-me below (it uses real columns `channel`, `amount_myr`), then use the result's **+ / Visualization** to make a bar chart — *or* ask the Assistant: *"suggest a visualization for this result; the columns are `channel`, `avg_txn` and `txns`."*
 ```sql
 %sql
 SELECT t.channel,
@@ -258,18 +271,25 @@ Highlight any query and type `/doc` in the Assistant. It adds clear inline comme
 🙌 **Your Turn — AI Data Detective (6 min)**
 Now *you* drive. No copy-paste code below — only questions. Let the Assistant write everything. Pick the ones that sound fun; you don't need all three.
 
-**🕵️ Challenge 1 — Crack the case.** Ask the Assistant, in plain English, to write the query that answers **one** of these business mysteries about *your* data:
-- *"Which state has the highest average transaction amount, and how many customers are there?"*
-- *"What are the top 3 spending categories for customers in the 'Affluent' segment?"*
-- *"Which transaction channel is most popular with customers under 30?"*
+**🕵️ Challenge 1 — Crack the case.** Ask the Assistant to write the query for **one** of these business mysteries. Each names the real tables/columns so the Assistant nails it — paste one as your prompt:
+- *"Join `customers` and `transactions` on `customer_id`. Which `state` has the highest average `amount_myr`? Also show the count of distinct `customer_id`."*
+- *"Join `customers` and `transactions` on `customer_id`. For customers whose `segment` = 'Affluent', show the top 3 `category` values by total `amount_myr`."*
+- *"Join `customers` and `transactions` on `customer_id`. For customers with `age` < 30, which `channel` has the most rows in `transactions`?"*
 
-Run it, then ask the Assistant a **follow-up**: *"now show that as a percentage of the total."* Notice it remembers the context. 🧠
+Run it, then ask a **follow-up**: *"now add a column showing each row's total `amount_myr` as a percentage of the overall total."* Notice it remembers the context. 🧠
 
-**⚔️ Challenge 2 — Debug Duel.** Write a deliberately messy query (wrong column name, missing comma, whatever) — or reuse the broken one from ③ with a *new* mistake. Race your neighbour: **who gets the Assistant to fix theirs first** using `/fix`? First green result wins. 🏆
+**⚔️ Challenge 2 — Debug Duel.** Start from this broken query against your real tables, then race your neighbour — **who gets the Assistant to `/fix` theirs first?** First green result wins. 🏆
+```sql
+%sql
+SELECT channel, ROUND(AVG(amont_myr),2) AS avg_amt
+FROM transaction
+GROUP BY chanel
+```
+*(Three deliberate errors: `amont_myr`, table `transaction`, and `chanel`. Add your own twist to make it harder!)*
 
-**🎨 Challenge 3 — "Read my mind" chart.** Without touching the chart menus, describe the visual you want to the Assistant in one sentence — e.g. *"a chart of monthly total spend over time"* or *"spending share by category as a pie."* See how close it gets to what you pictured. Screenshot the best one for the wrap-up.
+**🎨 Challenge 3 — "Read my mind" chart.** Describe the visual you want in one sentence, naming real columns — e.g. *"a line chart of total `amount_myr` from `transactions` by month of `txn_date`"* or *"a pie of total `amount_myr` by `category`."* First ask the Assistant to write the query, run it, then build the chart. See how close it gets to what you pictured. Screenshot the best one for the wrap-up.
 
-> 🎯 **Stretch (if you're flying):** ask the Assistant *"/optimize"* on your heaviest query, or *"explain this query to me like I'm a business user, no jargon."*
+> 🎯 **Stretch (if you're flying):** highlight your heaviest query and type `/optimize`, or ask *"explain this query to me like I'm a business user, no jargon."*
 
 💡 **Stuck?**
 - Assistant not showing? Click the ✨ sparkle icon on the far right edge, or press `Cmd/Ctrl + I` in a cell.
