@@ -75,6 +75,19 @@ ALTER TABLE `<your_catalog>`.retail_360.customers
 
 ✅ **Checkpoint:** `customers` now appears as a 5th table under `retail_360`, the query returns ~800 customers across segments, and the **Details** tab shows your description and tags.
 
+🙌 **Your Turn — try these (5 min)**
+1. **Document a column.** Add a comment to the `income_band` column so a teammate knows what it means:
+   ```sql
+   COMMENT ON COLUMN `<your_catalog>`.retail_360.customers.income_band IS
+     'Monthly income band in MYR, e.g. 5K-8K';
+   ```
+2. **Tag another table.** Give `transactions` a tag of your choosing (e.g. refresh cadence):
+   ```sql
+   ALTER TABLE `<your_catalog>`.retail_360.transactions
+     SET TAGS ('refresh' = 'daily');
+   ```
+3. **No-SQL challenge.** Using only the Catalog Explorer UI (no query), find how many **rows** the `accounts` table has. *(Hint: the Details / Sample Data tab.)*
+
 💡 **Stuck?**
 - Can't find **Create or modify table**? Use the **+** button at the very top of the left sidebar → **Add data**.
 - Backtick reminder: wrap the catalog name in backticks `` ` `` if your name has anything unusual.
@@ -119,6 +132,11 @@ ORDER BY total_spend DESC;
 
 ✅ **Checkpoint:** You've generated at least one query with the Assistant and seen a result table. You understand you can ask for SQL *or* Python and it adapts.
 
+🙌 **Your Turn — try these (5 min)**
+1. **Ask for a new angle.** Prompt the Assistant: *"Write SQL for the average transaction amount by channel, most-used channel first."* Run it.
+2. **Translate languages.** Highlight any SQL query and ask the Assistant: *"Convert this to PySpark."* Notice it keeps the logic, changes the syntax.
+3. **Make it explain itself.** Highlight a query → ask *"Add an inline comment to each line explaining what it does."*
+
 💡 **Stuck?**
 - Assistant not showing? Click the ✨ sparkle icon on the far right edge of the screen.
 - "Table not found"? Make sure you ran the `USE CATALOG` cell first (Step 3).
@@ -160,6 +178,11 @@ ORDER BY num_accounts DESC;
 
 ✅ **Checkpoint:** Both partners see the same joined result and each other's edits live. You joined two tables owned by one person, accessed by another — governed automatically by Unity Catalog.
 
+🙌 **Your Turn — try these (5 min)**
+1. **Co-write a finding.** Together, add a `%md` cell that names the **top product by number of accounts** from the query above.
+2. **Swap roles.** Now **Person B** shares *their* `my-exploration` notebook back to **Person A** with **Can Edit**.
+3. **Leave a comment.** Highlight a cell → **Comment** → `@mention` your partner with a question. Watch it appear on their screen.
+
 💡 **Stuck?**
 - B can't see the notebook? A should double-check the email and that permission is **Can Edit**.
 - Permission error on the query? The catalog owner (A) may need to grant `SELECT`. Ask the facilitator to show a quick `GRANT`.
@@ -180,6 +203,11 @@ ORDER BY num_accounts DESC;
 5. Deploy it to a **real-time serving endpoint** and hit it with a REST call to get a live prediction.
 
 💬 **Why it matters:** Data → model → production endpoint on **one platform**. No handoff to a separate ML team, no separate MLOps toolchain. The same governed tables you explored become the fuel for ML.
+
+🙌 **Your Turn — think about it (discussion)**
+No hands-on here — just get your brain going for the round-table later:
+1. **Spot a feature.** Looking at the columns the facilitator used, name **one more feature** you'd add to improve "Next Best Offer" (e.g. months since last product opened).
+2. **Name the action.** If the model says a customer's next best offer is *Home Financing-i*, **what should the bank actually do** with that prediction?
 
 ✅ **Checkpoint (mental):** You understand that "Next Best Offer" turns your customer + transaction data into a prediction the business can act on — and that any analyst here could kick off AutoML.
 
@@ -221,6 +249,11 @@ JOIN `<your_catalog>`.retail_360.transactions t
 9. Click **Publish** (top-right) → then **Share** → add your neighbour as a viewer.
 
 ✅ **Checkpoint:** A published dashboard with 3 charts + a working segment filter. Toggle the filter and watch every chart update. Your neighbour can open your link.
+
+🙌 **Your Turn — try these (5 min)**
+1. **Add a big number.** Add a **Counter** visualization showing **total customers** (or total spend in MYR).
+2. **Slice it differently.** Add a second **Filter** widget on `state` and watch the charts react.
+3. **Let AI build one.** Use the dashboard's **Assistant** — type *"chart of average transaction amount by channel"* and add the result to your canvas.
 
 💡 **Stuck?**
 - No data in a chart? Confirm you added the tables/dataset in the **Data** tab first.
@@ -266,6 +299,11 @@ accounts, transactions and products.
 
 ✅ **Checkpoint:** Genie answers at least two of your questions correctly with a table/chart, and your neighbour can open the space.
 
+🙌 **Your Turn — try these (5 min)**
+1. **Teach Genie a new term.** Add one instruction, e.g. *"A 'digital customer' is one whose transactions are mostly on Mobile App or Internet Banking."* Then ask *"How many digital customers do we have?"*
+2. **Add your own trusted question.** Create one sample question that matters to you (e.g. *"Average balance by product type"*) and save it.
+3. **Push it harder.** Ask a comparison: *"Compare total spend between Youth and Senior segments."* Refine an instruction if the answer looks off.
+
 💡 **Stuck?**
 - Wrong answer? Add or sharpen an **instruction** (e.g. define the term it got wrong), then ask again.
 - Genie can't find a column? Make sure the relevant table is added to the space.
@@ -297,6 +335,10 @@ accounts, transactions and products.
 
 ✅ **Checkpoint (Part A):** The assistant answers a product question and **cites the PDF** it pulled the answer from.
 
+🙌 **Your Turn — try these (5 min)**
+1. **Cross-document question.** Ask: *"Compare the profit rate of Personal Financing-i and Home Financing-i."* — it should pull from **two** PDFs.
+2. **Dig into fees.** Ask about the **fees or late payment charges** for any one product and check the citation.
+
 ### Part B — Supervisor Agent (orchestrates your Genies) — 15 min
 
 🛠️ **Steps**
@@ -316,6 +358,10 @@ accounts, transactions and products.
 ```
 
 ✅ **Checkpoint (Part B):** The Supervisor routes each question to the right agent, and the combined question touches both. You just built a working assistant in under 30 minutes — grounded on your data and documents, governed by Unity Catalog.
+
+🙌 **Your Turn — try these (5 min)**
+1. **Force a hand-off.** Ask a data question then a product question back-to-back, and watch which specialist each one routes to.
+2. **One question, both agents.** Ask: *"Which segment holds the fewest financing products, and what are the eligibility requirements for Personal Financing-i?"*
 
 💡 **Stuck?**
 - Knowledge Assistant returns nothing? Confirm the volume path is exact and the PDFs are in `product_docs/` (setup put them there).
