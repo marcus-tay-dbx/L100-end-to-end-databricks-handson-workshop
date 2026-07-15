@@ -1,0 +1,13 @@
+product_id,product_name,product_type,profit_rate_pct,min_amount_myr
+P01,Savings-i Account,Deposit,0.25,20
+P02,Term Deposit-i,Deposit,3.85,1000
+P03,Current Account-i,Deposit,0.0,500
+P04,Personal Financing-i,Financing,4.5,5000
+P05,Home Financing-i,Financing,3.85,50000
+P06,Vehicle Financing-i,Financing,3.4,20000
+P07,Education Financing-i,Financing,3.75,10000
+P08,Micro Financing-i,Financing,6.0,1000
+P09,Cash Line-i,Financing,7.5,3000
+P10,Credit Card-i,Card,0.0,0
+P11,Investment-i Fund,Wealth,0.0,1000
+P12,Takaful Protection-i,Protection,0.0,0

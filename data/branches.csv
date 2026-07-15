@@ -1,0 +1,25 @@
+branch_id,branch_name,state,region
+B001,Selangor Main Branch,Selangor,Central
+B002,Kuala Lumpur Main Branch,Kuala Lumpur,Central
+B003,Putrajaya Main Branch,Putrajaya,Central
+B004,Johor Main Branch,Johor,Southern
+B005,Johor Branch 1,Johor,Southern
+B006,Johor Branch 2,Johor,Southern
+B007,Melaka Main Branch,Melaka,Southern
+B008,Negeri Sembilan Main Branch,Negeri Sembilan,Southern
+B009,Penang Main Branch,Penang,Northern
+B010,Kedah Main Branch,Kedah,Northern
+B011,Kedah Branch 1,Kedah,Northern
+B012,Perak Main Branch,Perak,Northern
+B013,Perlis Main Branch,Perlis,Northern
+B014,Perlis Branch 1,Perlis,Northern
+B015,Kelantan Main Branch,Kelantan,East Coast
+B016,Terengganu Main Branch,Terengganu,East Coast
+B017,Terengganu Branch 1,Terengganu,East Coast
+B018,Terengganu Branch 2,Terengganu,East Coast
+B019,Pahang Main Branch,Pahang,East Coast
+B020,Sabah Main Branch,Sabah,East Malaysia
+B021,Sabah Branch 1,Sabah,East Malaysia
+B022,Sarawak Main Branch,Sarawak,East Malaysia
+B023,Sarawak Branch 1,Sarawak,East Malaysia
+B024,Sarawak Branch 2,Sarawak,East Malaysia
