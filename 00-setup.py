@@ -32,6 +32,8 @@ dbutils.widgets.text("your_name", "", "1. Your name (lowercase, e.g. ali)")
 dbutils.widgets.text("catalog_suffix", "bank", "2. Catalog suffix")
 dbutils.widgets.dropdown("reset", "no", ["no", "yes"], "3. Reset my catalog first?")
 
+# COMMAND ----------
+
 your_name = dbutils.widgets.get("your_name").strip().lower()
 catalog_suffix = dbutils.widgets.get("catalog_suffix").strip().lower()
 reset = dbutils.widgets.get("reset") == "yes"
