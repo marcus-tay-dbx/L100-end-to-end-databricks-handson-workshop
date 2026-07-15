@@ -215,6 +215,24 @@ print("✅ Added table descriptions (Genie and Catalog Explorer will show these)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ### Step 7 — Create the PII masking function (used in Module 1)
+# MAGIC This is the **pre-built function** you'll reference in Module 1 when you create your own
+# MAGIC ABAC policy. It masks any string value, so a policy can hide columns tagged as PII from
+# MAGIC other users. We create it for you — you'll write the *policy* that uses it.
+
+# COMMAND ----------
+
+spark.sql(f"""
+  CREATE OR REPLACE FUNCTION {CATALOG}.{SCHEMA}.mask_pii(input_value STRING)
+  RETURNS STRING
+  COMMENT 'Masks a value for users who should not see PII. Used by ABAC column-mask policies.'
+  RETURN '***REDACTED***'
+""")
+print(f"✅ Created masking function {CATALOG}.{SCHEMA}.mask_pii(STRING)")
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## 🎉 You're all set!
 
 # COMMAND ----------
@@ -235,6 +253,9 @@ summary = f"""
 
    Product docs for Module 7 (RAG):
      • {VOLUME_PATH}/product_docs/  ({pdf_count} PDFs)
+
+   Pre-built for you:
+     • {SCHEMA}.mask_pii()  (masking function for Module 1)
 ╠══════════════════════════════════════════════════════════════╣
    ▶️  NEXT: open lab-guide/LAB-GUIDE.md and start Module 1.
 ╚══════════════════════════════════════════════════════════════╝

@@ -65,28 +65,55 @@ GROUP BY segment
 ORDER BY customers DESC;
 ```
 ```sql
--- Add a description + a tag (governance in one line each)
+-- Add a table description (documentation in one line)
 COMMENT ON TABLE `<your_catalog>`.retail_360.customers IS
   'Retail banking customers: demographics, segment, income band, home branch.';
-
+```
+```sql
+-- Tag the region COLUMN as PII. This is the attribute a policy will match on.
 ALTER TABLE `<your_catalog>`.retail_360.customers
-  SET TAGS ('domain' = 'retail_banking', 'contains_pii' = 'true');
+  ALTER COLUMN region SET TAGS ('pii' = 'true');
 ```
 
-✅ **Checkpoint:** `customers` now appears as a 5th table under `retail_360`, the query returns ~800 customers across segments, and the **Details** tab shows your description and tags.
+✅ **Checkpoint:** `customers` now appears as a 5th table under `retail_360`, the query returns ~800 customers across segments, and on the **Details / Columns** tab the `region` column shows the `pii` tag.
 
-🙌 **Your Turn — try these (5 min)**
-1. **Document a column.** Add a comment to the `income_band` column so a teammate knows what it means:
+🙌 **Your Turn — govern by attribute (7 min)**
+You've tagged `region` as PII. Now create a **policy** that automatically masks *any* column carrying that tag — using the `mask_pii` function that setup pre-built for you. This is **ABAC**: govern by attribute (the tag), not column-by-column.
+
+1. **See the raw value first.** Note the real region values before masking:
    ```sql
-   COMMENT ON COLUMN `<your_catalog>`.retail_360.customers.income_band IS
-     'Monthly income band in MYR, e.g. 5K-8K';
+   SELECT customer_id, region, segment
+   FROM `<your_catalog>`.retail_360.customers
+   LIMIT 5;
    ```
-2. **Tag another table.** Give `transactions` a tag of your choosing (e.g. refresh cadence):
+2. **Create your own column-mask policy** that matches the `pii` tag and applies the pre-built function:
    ```sql
-   ALTER TABLE `<your_catalog>`.retail_360.transactions
-     SET TAGS ('refresh' = 'daily');
+   CREATE OR REPLACE POLICY mask_pii_columns
+   ON SCHEMA `<your_catalog>`.retail_360
+   COMMENT 'Mask any column tagged pii using the mask_pii function'
+   COLUMN MASK `<your_catalog>`.retail_360.mask_pii
+   TO `account users`
+   FOR TABLES
+   MATCH COLUMNS has_tag_value('pii', 'true') AS pii_col
+   ON COLUMN pii_col;
    ```
-3. **No-SQL challenge.** Using only the Catalog Explorer UI (no query), find how many **rows** the `accounts` table has. *(Hint: the Details / Sample Data tab.)*
+3. **Query again and watch it mask.** Re-run the query from step 1 — `region` now shows `***REDACTED***`, while `segment` (untagged) is untouched:
+   ```sql
+   SELECT customer_id, region, segment
+   FROM `<your_catalog>`.retail_360.customers
+   LIMIT 5;
+   ```
+4. **The attribute-based payoff.** Tag a *second* column and see the **same policy** mask it automatically — no policy change needed:
+   ```sql
+   ALTER TABLE `<your_catalog>`.retail_360.customers
+     ALTER COLUMN name SET TAGS ('pii' = 'true');
+   -- now query name + region; both are masked by the one policy you wrote
+   SELECT customer_id, name, region, segment
+   FROM `<your_catalog>`.retail_360.customers
+   LIMIT 5;
+   ```
+
+> 💡 That's the power of ABAC: you wrote **one** policy against a *tag*, and every current and future column with that tag is governed automatically.
 
 💡 **Stuck?**
 - Can't find **Create or modify table**? Use the **+** button at the very top of the left sidebar → **Add data**.
