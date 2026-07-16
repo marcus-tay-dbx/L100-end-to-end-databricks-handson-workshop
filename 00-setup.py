@@ -4,6 +4,8 @@
 # MAGIC
 # MAGIC **Welcome!** Today you are a Data Engineer, Data Scientist, BI Analyst *and* ML Engineer — all at once. Don't worry, it's not as scary as it sounds. 😊
 # MAGIC
+# MAGIC > 🛈 **Before you start:** your facilitator has already run the one-time `00-setup-ADMIN` notebook, which added you to the `data_builders` group (so you can create your own catalog) and set up the shared groups and tags. If **Step 3 fails with a permission error**, tell your facilitator — you may not be in `data_builders` yet.
+# MAGIC
 # MAGIC This one notebook creates your **own private sandbox** so you never step on anyone else's work:
 # MAGIC
 # MAGIC | What gets created | Example (if your name is `ali`) |
@@ -233,54 +235,7 @@ print(f"✅ Created masking function {CATALOG}.{SCHEMA}.mask_pii(STRING)")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### Step 8 — Create the 5 regional groups (idempotent, admin-run)
-# MAGIC For the **row-level security** demo in Module 1, we need 5 account groups — one per region.
-# MAGIC These are **account-wide and shared**, so they only need to be created **once** for the whole
-# MAGIC workshop. This cell creates any that don't already exist.
-# MAGIC
-# MAGIC > 🛈 Creating groups needs **admin** rights. When the facilitator runs setup, the groups are
-# MAGIC > created. When participants run setup later, the groups already exist and this step is skipped
-# MAGIC > automatically — nobody's run fails.
-
-# COMMAND ----------
-
-REGION_GROUPS = [
-    "team_central",
-    "team_east_coast",
-    "team_east_malaysia",
-    "team_northern",
-    "team_southern",
-]
-
-try:
-    from databricks.sdk import WorkspaceClient
-
-    w = WorkspaceClient()
-    created, existing = [], []
-    for g in REGION_GROUPS:
-        found = list(w.groups.list(filter=f'displayName eq "{g}"'))
-        if found:
-            existing.append(g)
-        else:
-            w.groups.create(display_name=g)
-            created.append(g)
-    if created:
-        print(f"✅ Created groups: {', '.join(created)}")
-    if existing:
-        print(f"↩️  Already existed (skipped): {', '.join(existing)}")
-    print("\nℹ️  Group MEMBERSHIP (who is in team_central, etc.) is assigned by the")
-    print("   facilitator in the Account Console — see facilitator notes.")
-except Exception as e:
-    print("⚠️  Could not create groups automatically (this is fine if you are not an admin).")
-    print(f"    Reason: {type(e).__name__}: {e}")
-    print("    The facilitator will create these 5 groups once in the Account Console:")
-    for g in REGION_GROUPS:
-        print(f"      • {g}")
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### Step 9 — Create the Row-Level Security function (used in Module 1)
+# MAGIC ### Step 8 — Create the Row-Level Security function (used in Module 1)
 # MAGIC This **pre-built function** returns TRUE only when the querying user is an admin, **or** is a
 # MAGIC member of the group matching a row's `region`. In Module 1 you'll attach it to your `branches`
 # MAGIC table as a **row filter**, so each region team sees only their own branches.
@@ -325,6 +280,9 @@ summary = f"""
    Pre-built for you (Module 1 governance):
      • {SCHEMA}.mask_pii()          (column mask function)
      • {SCHEMA}.filter_by_region()  (row-level security function)
+
+   Shared, set up by facilitator (used in Module 1):
+     • governed tag `pii` (values: true / false)
      • 5 regional groups: team_central / _east_coast /
        _east_malaysia / _northern / _southern
 ╠══════════════════════════════════════════════════════════════╣
