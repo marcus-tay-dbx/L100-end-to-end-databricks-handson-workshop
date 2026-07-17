@@ -282,7 +282,7 @@ summary = f"""
      • {SCHEMA}.filter_by_region()  (row-level security function)
 
    Shared, set up by facilitator (used in Module 1):
-     • governed tag `pii` (values: true / false)
+     • governed tags `pii` + `region_filter` (values: true / false)
      • 5 regional groups: team_central / _east_coast /
        _east_malaysia / _northern / _southern
 ╠══════════════════════════════════════════════════════════════╣
