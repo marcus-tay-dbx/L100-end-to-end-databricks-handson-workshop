@@ -59,10 +59,8 @@ That's it — `00-setup` builds your personal catalog, schema, volume, tables, a
 │       └── meridian/             (synthetic PDS PDFs)
 ├── notebooks/
 │   └── build_features.py         (facilitator: builds NBO feature table for M4)
-├── lab-guide/
-│   └── LAB-GUIDE.ipynb          ⭐ The participant handbook (7 modules)
-└── facilitator/
-    └── FACILITATOR-NOTES.md      timing, M4 demo script, cut-list
+└── lab-guide/
+    └── LAB-GUIDE.ipynb          ⭐ The participant handbook (7 modules)
 ```
 
 ---
@@ -103,8 +101,6 @@ The CSV data is brand-neutral, so nothing else changes.
 - **Serverless** compute (SQL warehouse + notebooks).
 - **Unity Catalog** with per-user `CREATE CATALOG` privilege.
 - **Agent Bricks / Mosaic AI** available in the workspace region.
-
-See `facilitator/FACILITATOR-NOTES.md` for the full pre-day checklist.
 
 ---
 
