@@ -248,8 +248,8 @@ spark.sql(f"""
   CREATE OR REPLACE FUNCTION {CATALOG}.{SCHEMA}.filter_by_region(region STRING)
   RETURNS BOOLEAN
   COMMENT 'Row filter: user sees a branch row only if admin, or member of the row''s region group.'
-  RETURN is_account_group_member('admins')
-      OR is_account_group_member(concat('team_', lower(replace(region, ' ', '_'))))
+  RETURN is_member('admins')
+      OR is_member(concat('team_', lower(replace(region, ' ', '_'))))
 """)
 print(f"✅ Created row-filter function {CATALOG}.{SCHEMA}.filter_by_region(STRING)")
 
