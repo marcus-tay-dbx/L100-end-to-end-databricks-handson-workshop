@@ -31,7 +31,7 @@ Everyone plays every role for the day: **Data Engineer → Data Scientist → BI
    ```
 3. Open **`00-setup`** at the top of the repo.
 4. Type **your name** in the widget (lowercase, e.g. `ali`) → **Run all**.
-5. When you see the green ✅ **SETUP COMPLETE** box, open **`lab-guide/LAB-GUIDE.md`** and start Module 1.
+5. When you see the green ✅ **SETUP COMPLETE** box, open **`lab-guide/LAB-GUIDE.ipynb`** and start Module 1.
 
 That's it — `00-setup` builds your personal catalog, schema, volume, tables, and loads the product documents.
 
@@ -60,7 +60,7 @@ That's it — `00-setup` builds your personal catalog, schema, volume, tables, a
 ├── notebooks/
 │   └── build_features.py         (facilitator: builds NBO feature table for M4)
 ├── lab-guide/
-│   └── LAB-GUIDE.md              ⭐ The participant handbook (7 modules)
+│   └── LAB-GUIDE.ipynb          ⭐ The participant handbook (7 modules)
 └── facilitator/
     └── FACILITATOR-NOTES.md      timing, M4 demo script, cut-list
 ```

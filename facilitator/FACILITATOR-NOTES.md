@@ -106,4 +106,4 @@ Protect at all costs: **M1 (the upload aha)**, **M6 (Genie)**, **M7 Part A (RAG)
 2. Drop the customer's product PDFs into `data/pds_documents/<customer>/`.
 3. Set `ACTIVE_BANK = "<customer>"` in `config/workshop_config.py`.
 4. The CSV data is brand-neutral — no changes needed.
-5. Optionally find/replace the bank name in `LAB-GUIDE.md` intro (or leave generic).
+5. Optionally find/replace the bank name in `LAB-GUIDE.ipynb` intro (or leave generic).

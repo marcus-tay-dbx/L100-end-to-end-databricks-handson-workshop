@@ -286,7 +286,7 @@ summary = f"""
      • 5 regional groups: team_central / _east_coast /
        _east_malaysia / _northern / _southern
 ╠══════════════════════════════════════════════════════════════╣
-   ▶️  NEXT: open lab-guide/LAB-GUIDE.md and start Module 1.
+   ▶️  NEXT: open lab-guide/LAB-GUIDE.ipynb and start Module 1.
 ╚══════════════════════════════════════════════════════════════╝
 """
 print(summary)
