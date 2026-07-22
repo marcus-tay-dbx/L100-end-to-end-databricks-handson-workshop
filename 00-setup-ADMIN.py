@@ -5,25 +5,28 @@
 # MAGIC **Facilitator only.** This notebook prepares the *shared, account-level* resources that every
 # MAGIC participant depends on. Participants do **not** run this — they run `00-setup.py`.
 # MAGIC
+# MAGIC > 👥 **Everyone in this workshop is an account/workspace admin.** That means the usual
+# MAGIC > "let participants create catalogs and assign tags" grants are unnecessary — admins already
+# MAGIC > have those privileges. So this notebook only creates the two things admin status does **not**
+# MAGIC > give you automatically: the **region groups** and the **governed tags**.
+# MAGIC
 # MAGIC | What this creates | Scope | Why |
 # MAGIC |---|---|---|
-# MAGIC | Group **`data_builders`** | Account | Participants join this; it grants them the right to create their own catalog. |
-# MAGIC | `GRANT CREATE CATALOG ON METASTORE` → `data_builders` | Metastore | So each participant's `00-setup.py` can build their own catalog. |
-# MAGIC | **5 regional groups** | Account | Row-level-security demo in Module 1 (one team per region). |
-# MAGIC | Governed tags **`pii`** and **`region_filter`** (values `true` / `false`) | Account | Module 1's ABAC policies match on these tags. **ABAC only works on _governed_ tags** — a plain tag fails with `Unknown tag policy key`. |
-# MAGIC | `GRANT ASSIGN ON GOVERNED TAG` → `data_builders` | Account | So participants can apply those governed tags to their own columns. |
+# MAGIC | **5 regional groups** | Account | Row-level-security demo in Module 1 (one team per region). Every participant joins exactly one. |
+# MAGIC | Governed tags **`pii`** and **`region_filter`** (values `true` / `false`) | Account | Module 1's ABAC policies match on these tags. **ABAC only works on _governed_ tags** — a plain tag fails with `Unknown tag policy key`. Admin status does **not** create these for you. |
 # MAGIC
 # MAGIC ### 👉 What you need to do
 # MAGIC 1. Make sure you are an **account admin** (or workspace admin with account privileges).
 # MAGIC 2. Click **Run all**.
-# MAGIC 3. Do the **⚠️ MANUAL STEPS** printed at the bottom (group membership — the only thing SQL can't do).
+# MAGIC 3. Do the **⚠️ MANUAL STEP** printed at the bottom (group membership — the only thing SQL can't do).
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### Step 1 — Create the `data_builders` group (participants join this)
-# MAGIC Groups are **account-level** resources with no `CREATE GROUP` SQL, so we use the SDK. This is
-# MAGIC idempotent — re-running never fails if the group already exists.
+# MAGIC ### Step 1 — Create the 5 regional groups (for Module 1 row-level security)
+# MAGIC These back the row filter on the `branches.region` column: a user in `team_central` sees only
+# MAGIC Central branches, etc. Groups are **account-level** resources with no `CREATE GROUP` SQL, so we use
+# MAGIC the SDK. Idempotent — re-running never fails if a group already exists.
 
 # COMMAND ----------
 
@@ -40,30 +43,6 @@ def ensure_group(display_name):
     w.groups.create(display_name=display_name)
     return "created"
 
-
-status = ensure_group("data_builders")
-print(f"{'✅ Created' if status == 'created' else '↩️  Already existed'} group: data_builders")
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### Step 2 — Let `data_builders` create their own catalogs
-# MAGIC This is the privilege that makes the participant setup work: each person's `00-setup.py` runs
-# MAGIC `CREATE CATALOG <name>_bank`. Without this grant, only admins could do that.
-
-# COMMAND ----------
-
-spark.sql("GRANT CREATE CATALOG ON METASTORE TO `data_builders`")
-print("✅ Granted CREATE CATALOG ON METASTORE to `data_builders`")
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### Step 3 — Create the 5 regional groups (for Module 1 row-level security)
-# MAGIC These back the row filter on the `branches.region` column: a user in `team_central` sees only
-# MAGIC Central branches, etc. Created once, shared by everyone. Idempotent.
-
-# COMMAND ----------
 
 REGION_GROUPS = [
     "team_central",
@@ -88,11 +67,12 @@ if existing:
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### Step 4 — Create the governed tags for Module 1 (`pii`, `region_filter`)
+# MAGIC ### Step 2 — Create the governed tags for Module 1 (`pii`, `region_filter`)
 # MAGIC Module 1's ABAC policies match columns with `has_tag_value('pii', 'true')` and
 # MAGIC `has_tag_value('region_filter', 'true')`. **ABAC only recognizes _governed_ tags** — a plain tag
 # MAGIC fails at policy-compile time with `Unknown tag policy key`. So we create both as governed tags
-# MAGIC with a fixed `true` / `false` value set.
+# MAGIC with a fixed `true` / `false` value set. (Admins can already *assign* governed tags, so no extra
+# MAGIC grant is needed once the tags exist.)
 # MAGIC
 # MAGIC > 🛈 `CREATE GOVERNED TAG` has no `IF NOT EXISTS`; it errors `ALREADY_EXISTS` on re-run. We catch
 # MAGIC > that so this notebook stays safe to re-run. Requires **DBR 18.1+ / serverless SQL** and account
@@ -122,24 +102,6 @@ for tag_key, desc in GOVERNED_TAGS.items():
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### Step 5 — Let `data_builders` assign those governed tags
-# MAGIC To run `ALTER TABLE ... SET TAGS ('pii' = 'true')`, a participant needs **`ASSIGN`** on the
-# MAGIC governed tag (plus `APPLY TAG` on the object — which they get automatically as **owner of their
-# MAGIC own catalog**). This grant is what makes participant tagging work in Module 1.
-
-# COMMAND ----------
-
-for tag_key in GOVERNED_TAGS:
-    try:
-        spark.sql(f"GRANT ASSIGN ON GOVERNED TAG {tag_key} TO `data_builders`")
-        print(f"✅ Granted ASSIGN on governed tag `{tag_key}` to `data_builders`")
-    except Exception as e:
-        print(f"⚠️  Could not grant ASSIGN on `{tag_key}`: {type(e).__name__}: {e}")
-        print("    The tag must exist first (Step 4) and you must be able to MANAGE it.")
-
-# COMMAND ----------
-
-# MAGIC %md
 # MAGIC ## ⚠️ MANUAL STEP — do this in the Account Console before participants start
 # MAGIC Group **membership** is the one thing SQL can't set. Do it now in the UI:
 
@@ -147,22 +109,21 @@ for tag_key in GOVERNED_TAGS:
 
 manual = """
 ╔══════════════════════════════════════════════════════════════════════╗
-   ⚠️  MANUAL STEPS (group membership — the only thing SQL can't set)
+   ⚠️  MANUAL STEP (group membership — the only thing SQL can't set)
 ╠══════════════════════════════════════════════════════════════════════╣
 
-  1. ADD PARTICIPANTS TO  data_builders
-     Account Console → User management → Groups → data_builders → Members
-     Add every workshop participant. This is what lets their 00-setup.py
-     create their own catalog AND assign the pii / region_filter tags.
+  ASSIGN EVERY PARTICIPANT TO EXACTLY ONE REGION GROUP
+     Account Console → User management → Groups → team_central /
+     team_east_coast / team_east_malaysia / team_northern / team_southern
+     Put EACH participant into ONE region group. In Module 1's row-level
+     security demo, they'll then see ONLY that region's branches — live,
+     on their own screen (there is no admin bypass in filter_by_region).
 
-  2. (For the Module 1 RLS demo) ASSIGN REGION-GROUP MEMBERSHIP
-     Account Console → Groups → team_central / team_east_coast /
-     team_east_malaysia / team_northern / team_southern
-     Put yourself (and any demo user) in ONE region group so you can
-     show "this user only sees their region's branches".
+  ⚠️  A participant in NO region group will see an EMPTY branches table
+      after applying the row-filter policy. Make sure everyone is in one.
 
 ╠══════════════════════════════════════════════════════════════════════╣
-   After steps 1–2, participants can open 00-setup.py and Run all.
+   After this step, participants can open 00-setup.py and Run all.
 ╚══════════════════════════════════════════════════════════════════════╝
 """
 print(manual)
@@ -171,12 +132,16 @@ print(manual)
 
 # MAGIC %md
 # MAGIC ### 💡 Notes for the facilitator
-# MAGIC - **Re-running is safe.** Groups, the metastore grant, the governed tags, and the ASSIGN grants
-# MAGIC   are all idempotent here.
+# MAGIC - **Everyone is an admin**, so participants can create their own catalog and assign the governed
+# MAGIC   tags with no extra grants. This notebook only sets up the region groups and governed tags.
+# MAGIC - **Re-running is safe.** The groups and the governed tags are all idempotent here.
 # MAGIC - **Why governed tags?** ABAC policies (`has_tag_value(...)`) only recognize **governed** tags. A
 # MAGIC   plain tag makes Module 1 fail with `Unknown tag policy key 'pii'`. Both `pii` and
-# MAGIC   `region_filter` must be governed and `ASSIGN`-granted to `data_builders`.
-# MAGIC - **Governed tags need DBR 18.1+.** Free-trial serverless SQL is fine. If Step 4 fails with a
+# MAGIC   `region_filter` must be governed tags — creating them is enough (admins can already assign them).
+# MAGIC - **No admin bypass in RLS.** `filter_by_region` (created in `00-setup.py`) matches only on region
+# MAGIC   group membership, so the filter applies to everyone — that's what makes the demo visible. Every
+# MAGIC   participant must be in exactly one `team_<region>` group.
+# MAGIC - **Governed tags need DBR 18.1+.** Free-trial serverless SQL is fine. If Step 2 fails with a
 # MAGIC   syntax error, your warehouse is on an older runtime.
 # MAGIC - **Removing everything after the workshop:** drop participant catalogs individually; the
 # MAGIC   account groups and governed tags can be reused for the next cohort.

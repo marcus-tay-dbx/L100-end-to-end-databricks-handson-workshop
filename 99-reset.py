@@ -14,8 +14,8 @@
 # MAGIC | Functions `mask_pii`, `filter_by_region` | inside the schema |
 # MAGIC | Any policies you created in Module 1 | attached to your tables |
 # MAGIC
-# MAGIC > 🛈 This does **not** touch shared, account-level things (the `data_builders` group, the 5
-# MAGIC > regional groups, the `pii` tag). Those are managed by the facilitator and reused across cohorts.
+# MAGIC > 🛈 This does **not** touch shared, account-level things (the 5 regional groups, the `pii` and
+# MAGIC > `region_filter` governed tags). Those are managed by the facilitator and reused across cohorts.
 
 # COMMAND ----------
 

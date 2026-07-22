@@ -4,7 +4,7 @@
 # MAGIC
 # MAGIC **Welcome!** Today you are a Data Engineer, Data Scientist, BI Analyst *and* ML Engineer — all at once. Don't worry, it's not as scary as it sounds. 😊
 # MAGIC
-# MAGIC > 🛈 **Before you start:** your facilitator has already run the one-time `00-setup-ADMIN` notebook, which added you to the `data_builders` group (so you can create your own catalog) and set up the shared groups and tags. If **Step 3 fails with a permission error**, tell your facilitator — you may not be in `data_builders` yet.
+# MAGIC > 🛈 **Before you start:** you're an admin in this workspace, so you can create your own catalog directly. Your facilitator has already run the one-time `00-setup-ADMIN` notebook, which set up the shared region groups and governed tags, and added you to one `team_<region>` group (for the Module 1 row-level-security demo). If **Step 3 fails with a permission error**, tell your facilitator.
 # MAGIC
 # MAGIC This one notebook creates your **own private sandbox** so you never step on anyone else's work:
 # MAGIC
@@ -236,20 +236,23 @@ print(f"✅ Created masking function {CATALOG}.{SCHEMA}.mask_pii(STRING)")
 
 # MAGIC %md
 # MAGIC ### Step 8 — Create the Row-Level Security function (used in Module 1)
-# MAGIC This **pre-built function** returns TRUE only when the querying user is an admin, **or** is a
-# MAGIC member of the group matching a row's `region`. In Module 1 you'll attach it to your `branches`
-# MAGIC table as a **row filter**, so each region team sees only their own branches.
+# MAGIC This **pre-built function** returns TRUE only when the querying user is a member of the group
+# MAGIC matching a row's `region`. In Module 1 you'll attach it to your `branches` table as a **row
+# MAGIC filter**, so each region team sees only their own branches.
 # MAGIC
 # MAGIC The mapping is automatic: `Central → team_central`, `East Coast → team_east_coast`, etc.
+# MAGIC
+# MAGIC > 🛈 There's **no admin bypass** — the filter applies to everyone, including catalog owners. That's
+# MAGIC > deliberate so each participant *sees* the filter work live. Every participant must be in exactly
+# MAGIC > one `team_<region>` group (see `00-setup-ADMIN.py`), otherwise `branches` returns no rows.
 
 # COMMAND ----------
 
 spark.sql(f"""
   CREATE OR REPLACE FUNCTION {CATALOG}.{SCHEMA}.filter_by_region(region STRING)
   RETURNS BOOLEAN
-  COMMENT 'Row filter: user sees a branch row only if admin, or member of the row''s region group.'
-  RETURN is_member('admins')
-      OR is_member(concat('team_', lower(replace(region, ' ', '_'))))
+  COMMENT 'Row filter: user sees a branch row only if member of the row''s region group.'
+  RETURN is_member(concat('team_', lower(replace(region, ' ', '_'))))
 """)
 print(f"✅ Created row-filter function {CATALOG}.{SCHEMA}.filter_by_region(STRING)")
 
